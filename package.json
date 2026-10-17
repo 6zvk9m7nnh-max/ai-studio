@@ -4,11 +4,11 @@
   "description": "Plateforme de collaboration entre intelligences artificielles",
   "main": "index.js",
   "scripts": {
-    "test": "node --import tsx --test tests/chat.test.ts"
+    "test": "node --import tsx --test tests/*.test.ts"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://x-access-token:ghs_13473_eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdXRobmQiLCJjdHgiOiJ2dzN5cndOVTRFLWphZm9TOW9hcnBNaHZEa1BjNnE5a3FCTHdaanFqbzM4OWh2MmJxM0xFenNiNHV3IiwiZXhwIjoxNzkyMTkzMjAzLCJpYXQiOjE3OTIxODk2MDMsImlzcyI6ImdpdGh1YiIsImp0aSI6IjZlYzIyNDUwLTQ5YjEtNGU1Yi1hZWEyLWJjOWU1OGQ5Zjc3NyIsInZlciI6M30.uZeARNNaxlQQq4Zasgp6-7C-raeg1Z5FypYdSeHNvURj9dni9KuIHa_rmrmH6SpTJAcT2wHMVxq6mYWMGh7Tcg@github.com/6zvk9m7nnh-max/ai-studio.git"
+    "url": "https://github.com/6zvk9m7nnh-max/ai-studio.git"
   },
   "keywords": [],
   "author": "",
