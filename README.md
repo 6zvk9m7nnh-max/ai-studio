@@ -1,30 +1,27 @@
 # AI Studio
 
-Interface française de collaboration ChatGPT / Claude conservant le design sombre du prototype. Les fichiers publics sont dans `public/`. Les SDK des fournisseurs et les accès à la base sont exclusivement dans les fonctions serveur.
+Plateforme française de collaboration ChatGPT et Claude, conservant le design sombre existant. Chaque mission est associée à un projet et suit trois étapes : ChatGPT propose, Claude vérifie, ChatGPT finalise à partir des deux résultats. Les rôles personnalisés, la consigne, les résultats, les erreurs et les jetons consommés sont sauvegardés côté serveur dans Netlify Database.
 
-## Configuration Netlify
+## Configuration et aperçu
 
-Le fichier `netlify.toml` publie `public/` sans commande de compilation. Netlify déploie automatiquement les fonctions et applique les migrations de `netlify/database/migrations/`. Netlify Database conserve les projets, tâches et messages dans un espace privé lié à un cookie HttpOnly de 30 jours. Il n’y a pas de compte utilisateur ni de partage entre appareils dans cette première version. Les anciennes données locales ne sont pas importées automatiquement ; exporter l’ancien prototype avant migration si nécessaire.
+Dans Netlify → Project configuration → Environment variables, renseigner `OPENAI_API_KEY` et `ANTHROPIC_API_KEY`, portée **Functions**, contexte **Deploy Previews**, puis redéployer l’aperçu. Le fichier `.env.example` fournit uniquement les noms. Aucun secret ne doit être placé dans `public/`, Git ou une conversation. Les SDK utilisent explicitement `https://api.openai.com/v1` et `https://api.anthropic.com` avec les modèles `gpt-4.1-mini` et `claude-haiku-4-5` ; la passerelle ne remplace pas les clés personnelles.
 
-La passerelle IA Netlify fournit automatiquement les accès aux deux fournisseurs. Pour utiliser vos propres comptes, créer `OPENAI_API_KEY` et `ANTHROPIC_API_KEY` dans Project configuration → Environment variables, portée Functions, avec les contextes Deploy Previews et Production appropriés. Saisir les valeurs uniquement dans l’interface sécurisée Netlify, puis redéployer. Ne pas définir de variable publique, ne pas placer de secret dans le HTML ou dans Git. Les SDK utilisent leurs constructeurs par défaut ; Netlify respecte les clés personnelles configurées. Les modèles sont `gpt-4.1-mini` et `claude-haiku-4-5`.
+Le projet publie `public/` sans compilation. Les fonctions sont dans `netlify/functions/`. Netlify applique automatiquement les migrations à l’aperçu et isole sa base de la production. La migration existante a été conservée ; une nouvelle migration ajoute les missions et le compteur de consommation. Ne pas appliquer les migrations manuellement. Aucune publication automatique supplémentaire n’a été configurée.
 
-## Aperçu à tester
+Pour ouvrir localement : `netlify dev --port 8889`. Le fonctionnement des sauvegardes nécessite aussi la connexion Netlify Database. L’aperçu distant est généré par le processus de revue des modifications.
 
-Utiliser le déploiement d’aperçu généré pour ces modifications avant de publier. Sa base Netlify est isolée de la production. Pour un développement local : `netlify dev --port 8889`.
+## Utilisation et limites
 
-1. Ouvrir Collaboration IA et envoyer une consigne en mode ChatGPT uniquement, puis Claude uniquement.
-2. Choisir En équipe : ChatGPT propose, puis Claude reçoit réellement cette proposition et accomplit sa mission. Modifier les missions pour tester une autre répartition.
-3. Vérifier les noms des auteurs, le chargement, Ctrl + Entrée, et les réponses après une question de suivi.
-4. Simuler une indisponibilité fournisseur dans un environnement de test : vérifier l’erreur explicite et la conservation d’une réponse partielle. En cas d’échec total, Réessayer renvoie le même message sans le dupliquer. En cas d’échec partiel, envoyer une nouvelle consigne à l’assistant concerné.
-5. Créer un projet et une tâche, recharger la page, puis vérifier la sauvegarde, l’export et l’effacement de conversation. Un navigateur sans le cookie ouvre un espace différent.
-6. Vérifier dans le réseau navigateur que seules les routes `/api/chat` et `/api/workspace` sont appelées, sans clé dans les requêtes ou réponses.
+Créer ou choisir un projet dans Collaboration IA, saisir une consigne puis Envoyer. La progression indique l’étape active et les résultats apparaissent après chaque sauvegarde. « Recharger les missions » récupère l’état serveur ; « Reprendre la mission » continue à partir de la première étape manquante. Une requête en cours verrouille son étape ; après une interruption serveur, elle peut être reprise après 55 secondes. Ne pas renvoyer une nouvelle mission si le navigateur dépasse son délai : recharger d’abord les missions.
 
-Les appels IA sont facturables sur le compte configuré. Le serveur limite les requêtes par IP et domaine (10 appels IA/minute), la taille du contexte, les sorties et les délais fournisseurs. Aucun outil autonome ni exécution de code généré n’est activé. Les conversations sont envoyées aux fournisseurs choisis. Les 12 derniers messages sont utilisés comme contexte ; les messages plus anciens restent visibles et exportables. La configuration des clés n’est pas présentée comme une connexion vérifiée : un appel réel reste nécessaire.
+Le serveur impose un plafond global atomique de 30 tentatives fournisseur par jour UTC, soit 10 missions complètes sans nouvelle tentative. Le compteur est commun à tout le site sur sa branche de base ; les erreurs consomment également une tentative. Chaque appel a un délai de 40 secondes, aucune relance automatique et au maximum 1 600 jetons de sortie. Les réponses tronquées ne sont pas considérées comme terminées. La consigne est limitée à 8 000 caractères et chaque rôle à 400 caractères. Une limitation réseau par IP et domaine complète le quota quotidien. Ces limites réduisent la consommation mais ne constituent pas un plafond monétaire : configurer aussi les budgets dans les comptes fournisseurs.
 
-## Vérification
+L’espace reste lié au cookie HttpOnly de ce navigateur pendant 30 jours, sans compte ni synchronisation entre appareils. Les anciennes conversations restent dans les données exportées ; elles ne sont pas automatiquement converties en missions. Les missions sont conservées indépendamment de la réinitialisation des projets et tâches. Exporter avant de supprimer un projet ou de perdre le cookie. Les 100 missions les plus récentes sont chargées et exportées avec l’espace. Aucun code produit par les assistants n’est exécuté automatiquement.
 
-`node --check public/studio.js`
+## Vérifications
 
-`node --import tsx --test tests/chat.test.ts`
+- `npm test` : validations de sécurité des routes, fermeture de l’ancien accès sans quota, transmission des résultats entre les trois étapes, SDK officiels simulés, limites de sortie et erreurs sans fuite de détails.
+- `node --check public/studio.js` : syntaxe navigateur.
+- `npx tsc --noEmit --module nodenext --moduleResolution nodenext --target es2022 --skipLibCheck netlify/functions/*.mts netlify/lib/*.ts db/schema.ts` : vérification TypeScript.
 
-`npx tsc --noEmit --module nodenext --moduleResolution nodenext --target es2022 --skipLibCheck netlify/functions/chat.mts netlify/functions/workspace.mts db/schema.ts`
+Sur l’aperçu connecté à la base, avec les deux clés : créer un projet, lancer une mission, vérifier les trois réponses et les jetons, recharger la page, tester la reprise après une erreur fournisseur et confirmer la sauvegarde. La persistance réelle, le verrouillage concurrent et le quota atomique nécessitent la migration appliquée par Netlify. Les tests simulés n’effectuent aucun appel facturable.
