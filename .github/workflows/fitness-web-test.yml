@@ -1,0 +1,22 @@
+name: Fit Studio web smoke test
+on:
+  push:
+    branches: [feat/fitness-mobile-mvp]
+    paths:
+      - 'fitness-web/**'
+      - '.github/workflows/fitness-web-test.yml'
+  pull_request:
+    paths:
+      - 'fitness-web/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node fitness-web/smoke-test.mjs

@@ -1,0 +1,22 @@
+name: Fit Studio web browser test
+on:
+  push:
+    branches: [feat/fitness-mobile-mvp]
+    paths:
+      - 'fitness-web/**'
+      - '.github/workflows/fitness-web-browser.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - run: node fitness-web/browser-test.mjs
