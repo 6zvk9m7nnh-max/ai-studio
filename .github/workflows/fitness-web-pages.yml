@@ -1,4 +1,5 @@
 name: Publish Fit Studio Safari demo
+# Redeploy after github-pages environment branch authorization.
 on:
   push:
     branches: [feat/fitness-mobile-mvp]
