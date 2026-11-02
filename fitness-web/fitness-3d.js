@@ -1,6 +1,6 @@
 /* Original Fit Studio procedural 3D previews. Stylized, not clinical instruction. */
 (()=>{'use strict';
-const CDN='https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js';
+const CDN='https://cdnjs.cloudflare.com/ajax/libs/three.js/0.152.2/three.min.js';
 let loading;
 function load(){if(window.THREE)return Promise.resolve();if(!loading)loading=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=CDN;s.onload=resolve;s.onerror=reject;document.head.appendChild(s)});return loading}
 const catalog={
